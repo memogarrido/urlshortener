@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>TODO supply a title</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+        <div>TODO write content</div>
+        <script type="text/javascript">
+            doJSONRequest(function(json){
+                console.log(json);
+            })
+            function doJSONRequest( callback) {
+                var xmlhttp = new XMLHttpRequest();
+
+                xmlhttp.onreadystatechange = function () {
+                    if (xmlhttp.readyState == XMLHttpRequest.DONE) {
+                        if (xmlhttp.status == 200) {
+                            callback(JSON.parse(xmlhttp.responseText));
+                        } else if (xmlhttp.status == 400) {
+                            alert('There was an error 400');
+                        } else {
+                            alert('something else other than 200 was returned');
+                        }
+                    }
+                };
+
+                xmlhttp.open("GET", "http://localhost:3000/links/", true);
+                xmlhttp.send();
+            }
+        </script>
+    </body>
+</html>

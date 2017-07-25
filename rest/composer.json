@@ -1,0 +1,13 @@
+{
+    "name": "vendor/urlshortener",
+    "description": "Practice and learning PHP REST project to shorten URLs",
+    "authors": [
+        {
+            "name": "Guillermo Garrido",
+            "email": "guillermogarrido90@gmail.com"
+        }
+    ],
+    "require": {
+        "slim/slim": "3.8.1"
+    }
+}
