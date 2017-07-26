@@ -13,10 +13,12 @@ and open the template in the editor.
     <body>
         <div>TODO write content</div>
         <script type="text/javascript">
-            doJSONRequest(function(json){
-                console.log(json);
-            })
-            function doJSONRequest( callback) {
+            /*for (var i = 50; i < 100000; i++) {
+                doJSONRequest("http://testmemo" + i + ".com", function (json) {
+                    console.log(json);
+                });
+            }*/
+            function doJSONRequest(url, callback) {
                 var xmlhttp = new XMLHttpRequest();
 
                 xmlhttp.onreadystatechange = function () {
@@ -30,9 +32,10 @@ and open the template in the editor.
                         }
                     }
                 };
-
-                xmlhttp.open("GET", "http://localhost:3000/links/", true);
-                xmlhttp.send();
+                var data = new FormData();
+                data.append('url', url);
+                xmlhttp.open("POST", "http://localhost:3000/links/", true);
+                xmlhttp.send(data);
             }
         </script>
     </body>
