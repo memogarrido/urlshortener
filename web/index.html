@@ -22,12 +22,15 @@
         <main class="container">
             <section class="row">
                 <section class="col-lg-5">
-                    <input placeholder="Insert long and buring URL" type="text" class="allWithd" id="longURL" onchange="shortenURL()"/>
+                    <input placeholder="Insert long and buring URL" type="text" class="allWithd" id="longURL" />
+                </section>
+                <section class="col-lg-2">
+                    <input placeholder="CUSTOM URL (optional)" type="text" class="allWithd" id="hash"/>
                 </section>
                 <section class="col-lg-2 center-text">
-                    <img src="img/transfer-icon.png" alt="transfer icon" class="transfer-icon" id="imgAnim"/>
+                    <img src="img/transfer-icon.png" alt="transfer icon" class="transfer-icon" id="imgAnim" onclick="shortenURL()"/>
                 </section>
-                <section class="col-lg-5">
+                <section class="col-lg-3">
                     <input placeholder="Get short new and exiting URL" type="text" class="allWithd" id="shortURL"/>
                 </section>
             </section>

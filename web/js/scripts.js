@@ -1,19 +1,30 @@
 function isUrlValid(userInput) {
     var res = userInput.match(/(http(s)?:\/\/.)?(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*)/g);
-    if(res == null)
+    if (res == null)
         return false;
     else
         return true;
+}
+function alphanumeric(str)
+{
+    var letters = /^[0-9a-zA-Z]+$/;
+    if (str.match(letters))
+        return true;
+    else
+        return false;
 }
 
 function shortenURL() {
     var imgAnim = document.getElementById('imgAnim');
     var longURL = document.getElementById('longURL');
     var shortURL = document.getElementById('shortURL');
+    var hash = document.getElementById('hash');
     imgAnim.className += " animado";
     var data = new FormData();
     data.append('url', longURL.value);
-    if (isUrlValid(longURL.value)) {
+    if (isUrlValid(longURL.value) && (hash.value.length === 0 || alphanumeric(hash.value))) {
+        if (hash.value.length > 0)
+            data.append('hash', hash.value);
         doJSONRequest("http://localhost:3000/links/", data, "POST", function (data) {
             if (data.status == 0) {
                 shortURL.value = "http://localhost:3000/" + data.link.hash;
@@ -21,8 +32,7 @@ function shortenURL() {
                 alert("Ocurrio un error al obtener url " + data.message);
             imgAnim.className = "transfer-icon";
         });
-    }
-    else{
+    } else {
         console.log("Not valid URL");
     }
 
