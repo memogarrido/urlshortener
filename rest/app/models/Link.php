@@ -107,7 +107,7 @@ class Link extends DatabaseEntity {
             $response->setMessage("Not a valid tag");
             return $response;
         } else if (!$this->isHashAvailable($this->getHash())) {
-            $response->setStatus(-1);
+            $response->setStatus(Error::ERROR_DATO_NO_INSERTADO_ACTUALIZADO_BD);
             $response->setLink(null);
             $response->setMessage("URL already taken");
             return $response;

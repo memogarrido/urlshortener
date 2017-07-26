@@ -13,6 +13,13 @@ function alphanumeric(str)
     else
         return false;
 }
+var SUCCESS = 0;
+var ERROR_FALTARON_PARAMETROS = 1;
+var ERROR_INESPERADO_CATCH = 2;
+var ERROR_DE_CONEXION_BD = 3;
+var ERROR_DATOS_ERRONEOS = 4;
+var ERROR_DATO_NO_INSERTADO_ACTUALIZADO_BD = 5;
+var WARN_LA_CONSULTA_NO_OBTUVO_RESULTADOS = 6;
 
 function shortenURL() {
     var imgAnim = document.getElementById('imgAnim');
@@ -28,12 +35,11 @@ function shortenURL() {
         doJSONRequest("http://localhost:3000/links/", data, "POST", function (data) {
             if (data.status == 0) {
                 shortURL.value = "http://localhost:3000/" + data.link.hash;
-            } else
-                alert("Ocurrio un error al obtener url " + data.message);
-            imgAnim.className = "transfer-icon";
+            }
+            sendMessage(data.message, data.status);
         });
     } else {
-        console.log("Not valid URL");
+        sendMessage("Not a valid URL", ERROR_DATOS_ERRONEOS);
     }
 
 }
@@ -57,10 +63,8 @@ function doJSONRequest(url, data, method, callback) {
         if (xmlhttp.readyState == XMLHttpRequest.DONE) {
             if (xmlhttp.status == 200) {
                 callback(JSON.parse(xmlhttp.responseText));
-            } else if (xmlhttp.status == 400) {
-                alert('There was an error 400');
             } else {
-                alert('something else other than 200 was returned');
+                sendMessage("Error en la petición", ERROR_INESPERADO_CATCH);
             }
         }
     };
@@ -81,4 +85,30 @@ function formatParams(params) {
                 return key + "=" + encodeURIComponent(params[key]);
             })
             .join("&");
+}
+
+function sendMessage(msg, status) {
+    mensaje = document.getElementById('mensaje');
+
+    imgAnim.className = "transfer-icon";
+    switch (status) {
+        case SUCCESS:
+            mensaje.innerHTML = '<div class="isa_success">' +
+                    '<i class="fa fa-check"></i>Operación realizada con éxto</div>';
+            break;
+        case ERROR_DATOS_ERRONEOS:
+        case ERROR_DATO_NO_INSERTADO_ACTUALIZADO_BD:
+        case ERROR_DE_CONEXION_BD:
+        case ERROR_FALTARON_PARAMETROS:
+        case ERROR_INESPERADO_CATCH:
+            mensaje.innerHTML = '<div class="isa_error">' +
+                    '<i class="fa fa-times-circle"></i>' +
+                    msg + '</div>';
+            break;
+        case WARN_LA_CONSULTA_NO_OBTUVO_RESULTADOS:
+            mensaje.innerHTML = '<div class="isa_warning">' +
+                    '<i class="fa fa-times-warning"></i>' +
+                    msg + '</div>';
+            break;
+    }
 }
