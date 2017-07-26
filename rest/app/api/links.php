@@ -9,7 +9,9 @@ require __DIR__ . '/../models/Link.php';
 //Route to insert link on post
 $app->post('/links/', function ($request, $response) {
     $link = new Link();
-
+    if ($request->getParam('hash') != null) {
+        $link->setHash($request->getParam('hash'));
+    }
     if ($request->getParam('url') && Validator::is_valid_url($request->getParam('url'))) {
         $link->setUrlOrig($request->getParam('url'));
         return $response->withStatus(200)
@@ -43,7 +45,7 @@ $app->get('/{hash}', function ($request, $response) {
 //Route to get list of link pairs
 $app->get('/links/', function ($request, $response) {
     $link = new Link();
-    if ($request->getParam('offset')!=null) {
+    if ($request->getParam('offset') != null) {
         return $response->withStatus(200)
                         ->withHeader('Content-Type', 'application/json')
                         ->write(json_encode($link->getURLs($request->getParam('offset'))));

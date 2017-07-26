@@ -47,6 +47,25 @@ class Link extends DatabaseEntity {
         $this->creationDate = $creationDate;
     }
 
+    function isHashAvailable($hash) {
+        $stmt = parent::getConnection()->prepare("SELECT url_orig FROM links WHERE hash=:hash");
+        $stmt->bindParam(':hash', $hash);
+        /* $hash != "link" avoidng a hash that uses out REST
+         * also could be solved just by removing l from the alphabet. 
+         * or in the future != set of words, 
+         * or putting the link in our database
+         */
+        if ($stmt->execute()) {
+            if ($stmt->rowCount() == 0 && $hash != "link") {
+                return true;
+            } else {
+                return false;
+            }
+        } else {
+            throw new Exception("Error trying to get availability");
+        }
+    }
+
     /**
      * Function to know size of the links table to have the next ID integer to calculate a hash
      * @return returns hash string
@@ -62,20 +81,11 @@ class Link extends DatabaseEntity {
             $uniqueId = rand($range[$i], $range[$i + 1]);
             $hash = IntegerHash::encode($uniqueId);
             $attemts++; //1
-            $stmt = parent::getConnection()->prepare("SELECT url_orig FROM links WHERE hash=:hash");
-            $stmt->bindParam(':hash', $hash);
-            /* $hash != "link" avoidng a hash that uses out REST
-             * also could be solved just by removing l from the alphabet. 
-             * or in the future != set of words, 
-             * or putting the link in our database
-             */
-            if ($stmt->execute() && $hash != "link") {
-                if ($stmt->rowCount() == 0) {
-                    $uniqueHashFounded = true;
-                } else if ($attemts == $i) {
-                    $attemts = 0;
-                    $i++;
-                }
+            if ($this->isHashAvailable($hash)) {
+                $uniqueHashFounded = true;
+            } else if ($attemts == $i) {
+                $attemts = 0;
+                $i++;
             }
         }
         return $hash;
@@ -87,8 +97,21 @@ class Link extends DatabaseEntity {
      */
     function insertLink() {
         $response = new ResponseLinkHash();
+        if (empty($this->getHash())) {
 
-        $this->setHash($this->calculateNexHash());
+            $this->setHash($this->calculateNexHash());
+        }
+        if (!ctype_alnum($this->getHash())) {
+            $response->setStatus(-1);
+            $response->setLink(null);
+            $response->setMessage("Not a valid tag");
+            return $response;
+        } else if (!$this->isHashAvailable($this->getHash())) {
+            $response->setStatus(-1);
+            $response->setLink(null);
+            $response->setMessage("URL already taken");
+            return $response;
+        }
         $sql = "INSERT INTO links ( `hash`, `url_orig`, `creation_date`) VALUES (:hash,:url, NOW());";
 
         try {
