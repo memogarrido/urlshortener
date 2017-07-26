@@ -3,6 +3,7 @@
 require __DIR__ . '/../models/ResponseStatus.php';
 require __DIR__ . '/../utils/IntegerHash.php';
 require __DIR__ . '/../utils/Validator.php';
+require __DIR__ . '/../models/Error.php';
 require __DIR__ . '/../models/DatabaseEntity.php';
 require __DIR__ . '/../models/Link.php';
 
@@ -19,9 +20,9 @@ $app->post('/links/', function ($request, $response) {
                         ->write(json_encode($link->insertLink()));
     } else {
         $responseStatus = new ResponseStatus();
-        $responseStatus->setStatus(-1);
+        $responseStatus->setStatus(Error::ERROR_DATOS_ERRONEOS);
         $responseStatus->setMessage("Necesitas ingresar una url valida a convertir");
-        return $response->withStatus(400)
+        return $response->withStatus(200)
                         ->withHeader('Content-Type', 'application/json')
                         ->write(json_encode($responseStatus));
     }
@@ -51,9 +52,9 @@ $app->get('/links/', function ($request, $response) {
                         ->write(json_encode($link->getURLs($request->getParam('offset'))));
     } else {
         $responseStatus = new ResponseStatus();
-        $responseStatus->setStatus(-1);
+        $responseStatus->setStatus(ERROR::ERROR_FALTARON_PARAMETROS);
         $responseStatus->setMessage("No se ha recibido el offset para mostrar resultados");
-        return $response->withStatus(400)
+        return $response->withStatus(200)
                         ->withHeader('Content-Type', 'application/json')
                         ->write(json_encode($responseStatus));
     }

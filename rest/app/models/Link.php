@@ -102,7 +102,7 @@ class Link extends DatabaseEntity {
             $this->setHash($this->calculateNexHash());
         }
         if (!ctype_alnum($this->getHash())) {
-            $response->setStatus(-1);
+            $response->setStatus(Error::ERROR_DATOS_ERRONEOS);
             $response->setLink(null);
             $response->setMessage("Not a valid tag");
             return $response;
@@ -122,12 +122,12 @@ class Link extends DatabaseEntity {
                 $response->setStatus(0);
                 $response->setLink($this);
             } else {
-                $response->setStatus(-1);
+                $response->setStatus(Error::ERROR_DATO_NO_INSERTADO_ACTUALIZADO_BD);
                 $response->setLink(null);
                 $response->setMessage('excecute failed' . json_encode($stmt->errorInfo()));
             }
         } catch (Exception $e) {
-            $response->setStatus(-1);
+            $response->setStatus(Error::ERROR_INESPERADO_CATCH);
             $response->setLink(null);
             $response->setMessage($e->getMessage());
         }
@@ -151,17 +151,17 @@ class Link extends DatabaseEntity {
                     $response->setStatus(0);
                     $response->setLink($this);
                 } else {
-                    $response->setStatus(-1);
+                    $response->setStatus(Error::WARN_LA_CONSULTA_NO_OBTUVO_RESULTADOS);
                     $response->setLink(null);
                     $response->setMessage('Hash no encontrado');
                 }
             } else {
-                $response->setStatus(-1);
+                $response->setStatus(Error::ERROR_DE_CONEXION_BD);
                 $response->setLink(null);
                 $response->setMessage('excecute failed');
             }
         } catch (Exception $e) {
-            $response->setStatus(-1);
+            $response->setStatus(Error::ERROR_INESPERADO_CATCH);
             $response->setMessage($e->getMessage());
         }
         return $response;
@@ -196,21 +196,21 @@ class Link extends DatabaseEntity {
                         $response->setStatus(0);
                         $response->setLinks($lstLinks);
                     } else {
-                        $response->setStatus(-1);
+                        $response->setStatus(Error::WARN_LA_CONSULTA_NO_OBTUVO_RESULTADOS);
                         $response->setLinks(null);
                         $response->setMessage('sin resultados');
                     }
                 } else {
-                    $response->setStatus(-1);
+                    $response->setStatus(Error::ERROR_DE_CONEXION_BD);
                     $response->setLinks(null);
                     $response->setMessage('excecute failed ' . json_encode($stmt->errorInfo()));
                 }
             } catch (Exception $e) {
-                $response->setStatus(-1);
+                $response->setStatus(Error::ERROR_INESPERADO_CATCH);
                 $response->setMessage($e->getMessage());
             }
         } else {
-            $response->setStatus(-1);
+            $response->setStatus(Error::ERROR_DATOS_ERRONEOS);
             $response->setMessage("Offset needs to be greater or equal to 0");
         }
 
