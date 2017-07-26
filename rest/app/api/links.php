@@ -2,14 +2,15 @@
 
 require __DIR__ . '/../models/ResponseStatus.php';
 require __DIR__ . '/../utils/IntegerHash.php';
+require __DIR__ . '/../utils/Validator.php';
 require __DIR__ . '/../models/DatabaseEntity.php';
 require __DIR__ . '/../models/Link.php';
 
 //Route to insert link on post
 $app->post('/links/', function ($request, $response) {
     $link = new Link();
-    
-    if ($request->getParam('url') && filter_var($request->getParam('url'), FILTER_VALIDATE_URL)) {
+
+    if ($request->getParam('url') && Validator::is_valid_url($request->getParam('url'))) {
         $link->setUrlOrig($request->getParam('url'));
         return $response->withStatus(200)
                         ->withHeader('Content-Type', 'application/json')
@@ -42,7 +43,7 @@ $app->get('/{hash}', function ($request, $response) {
 //Route to get list of link pairs
 $app->get('/links/', function ($request, $response) {
     $link = new Link();
-    if ($request->getParam('offset') && filter_var($request->getParam('offset'), FILTER_VALIDATE_INT)) {
+    if ($request->getParam('offset')!=null) {
         return $response->withStatus(200)
                         ->withHeader('Content-Type', 'application/json')
                         ->write(json_encode($link->getURLs($request->getParam('offset'))));

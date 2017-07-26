@@ -64,7 +64,7 @@ class Link extends DatabaseEntity {
             $attemts++; //1
             $stmt = parent::getConnection()->prepare("SELECT url_orig FROM links WHERE hash=:hash");
             $stmt->bindParam(':hash', $hash);
-            /*$hash != "link" avoidng a hash that uses out REST
+            /* $hash != "link" avoidng a hash that uses out REST
              * also could be solved just by removing l from the alphabet. 
              * or in the future != set of words, 
              * or putting the link in our database
@@ -148,38 +148,49 @@ class Link extends DatabaseEntity {
      * function to fetch all stored links
      * @return \ResponseLinkHash
      */
-    function getURLs($offset) {
+    function getURLs($offsetParam) {
+        $offset = 0;
+        if (filter_var($offsetParam, FILTER_VALIDATE_INT)) {
+            $offset = $offsetParam;
+        }
+
         $response = new ResponseLinks();
-        $sql = "SELECT url_orig, hash, creation_date FROM links order by creation_date desc limit  100 offset :offset";
-        try {
-            $stmt = parent::getConnection()->prepare($sql);
-            $stmt->bindParam(':offset', intval($offset), PDO::PARAM_INT);
-            if ($stmt->execute()) {
-                $lstLinks = [];
-                while ($row = $stmt->fetch()) {
-                    $objLink = new Link();
-                    $objLink->setCreationDate($row["creation_date"]);
-                    $objLink->setHash($row["hash"]);
-                    $objLink->setUrlOrig($row["url_orig"]);
-                    array_push($lstLinks, $objLink);
-                }
-                if (sizeof($lstLinks) > 0) {
-                    $response->setStatus(0);
-                    $response->setLinks($lstLinks);
+        if ($offset >= 0) {
+            $sql = "SELECT url_orig, hash, creation_date FROM links order by creation_date desc limit  100 offset :offset";
+            try {
+                $stmt = parent::getConnection()->prepare($sql);
+                $stmt->bindParam(':offset', intval($offset), PDO::PARAM_INT);
+                if ($stmt->execute()) {
+                    $lstLinks = [];
+                    while ($row = $stmt->fetch()) {
+                        $objLink = new Link();
+                        $objLink->setCreationDate($row["creation_date"]);
+                        $objLink->setHash($row["hash"]);
+                        $objLink->setUrlOrig($row["url_orig"]);
+                        array_push($lstLinks, $objLink);
+                    }
+                    if (sizeof($lstLinks) > 0) {
+                        $response->setStatus(0);
+                        $response->setLinks($lstLinks);
+                    } else {
+                        $response->setStatus(-1);
+                        $response->setLinks(null);
+                        $response->setMessage('sin resultados');
+                    }
                 } else {
                     $response->setStatus(-1);
                     $response->setLinks(null);
-                    $response->setMessage('sin resultados');
+                    $response->setMessage('excecute failed ' . json_encode($stmt->errorInfo()));
                 }
-            } else {
+            } catch (Exception $e) {
                 $response->setStatus(-1);
-                $response->setLinks(null);
-                $response->setMessage('excecute failed ' . json_encode($stmt->errorInfo()));
+                $response->setMessage($e->getMessage());
             }
-        } catch (Exception $e) {
+        } else {
             $response->setStatus(-1);
-            $response->setMessage($e->getMessage());
+            $response->setMessage("Offset needs to be greater or equal to 0");
         }
+
         return $response;
     }
 
