@@ -8,6 +8,7 @@ require __DIR__ . '/../models/Link.php';
 //Route to insert link on post
 $app->post('/links/', function ($request, $response) {
     $link = new Link();
+    
     if ($request->getParam('url') && filter_var($request->getParam('url'), FILTER_VALIDATE_URL)) {
         $link->setUrlOrig($request->getParam('url'));
         return $response->withStatus(200)

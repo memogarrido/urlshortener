@@ -21,7 +21,7 @@ class Link extends DatabaseEntity {
      * Creation Date of the link
      * @var Date
      */
-    private $creationDate;
+    public $creationDate;
 
     function getHash() {
         return $this->hash;
@@ -51,13 +51,34 @@ class Link extends DatabaseEntity {
      * Function to know size of the links table to have the next ID integer to calculate a hash
      * @return returns hash string
      */
-    function calculateNexHash() {
-        $stmt = parent::getConnection()->prepare("SELECT count(*)+1 FROM links");
-        $count = 0;
-        if ($stmt->execute()) {
-            $count = $stmt->fetch()[0];
+    function calculateNexHash() { //this can be improved knowing the size of the actual link table
+        $range = [0, 62, 3844, 238328, 14776336, 916132832];
+        //          1   2     3       4        5 =15
+        $uniqueHashFounded = false;
+        $i = 0;
+        $attemts = 0;
+        $hash = "";
+        while (!$uniqueHashFounded && $i < 4) {
+            $uniqueId = rand($range[$i], $range[$i + 1]);
+            $hash = IntegerHash::encode($uniqueId);
+            $attemts++; //1
+            $stmt = parent::getConnection()->prepare("SELECT url_orig FROM links WHERE hash=:hash");
+            $stmt->bindParam(':hash', $hash);
+            /*$hash != "link" avoidng a hash that uses out REST
+             * also could be solved just by removing l from the alphabet. 
+             * or in the future != set of words, 
+             * or putting the link in our database
+             */
+            if ($stmt->execute() && $hash != "link") {
+                if ($stmt->rowCount() == 0) {
+                    $uniqueHashFounded = true;
+                } else if ($attemts == $i) {
+                    $attemts = 0;
+                    $i++;
+                }
+            }
         }
-        return IntegerHash::encode($count);
+        return $hash;
     }
 
     /**
@@ -132,7 +153,7 @@ class Link extends DatabaseEntity {
         $sql = "SELECT url_orig, hash, creation_date FROM links order by creation_date desc limit  100 offset :offset";
         try {
             $stmt = parent::getConnection()->prepare($sql);
-            $stmt->bindParam(':offset',intval($offset), PDO::PARAM_INT);
+            $stmt->bindParam(':offset', intval($offset), PDO::PARAM_INT);
             if ($stmt->execute()) {
                 $lstLinks = [];
                 while ($row = $stmt->fetch()) {
@@ -142,7 +163,7 @@ class Link extends DatabaseEntity {
                     $objLink->setUrlOrig($row["url_orig"]);
                     array_push($lstLinks, $objLink);
                 }
-                if (sizeof($lstLinks)>0) {
+                if (sizeof($lstLinks) > 0) {
                     $response->setStatus(0);
                     $response->setLinks($lstLinks);
                 } else {
@@ -197,4 +218,3 @@ class ResponseLinks extends ResponseStatus {
     }
 
 }
-

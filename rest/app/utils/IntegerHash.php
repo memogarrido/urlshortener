@@ -5,7 +5,7 @@
  */
 class IntegerHash {
 
-    const ALPHABET = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    const ALPHABET = 'D1LEpr9OlkiTsxR3XNmWAbChPBHnfJSMFQjVa5cGKuU0dY2z6gyZIweqv74to8';
     const BASE = 62;
 
     public static function encode($num) {
