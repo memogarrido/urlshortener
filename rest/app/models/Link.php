@@ -21,7 +21,7 @@ class Link extends DatabaseEntity {
      * Creation Date of the link
      * @var Date
      */
-    private   $creationDate;
+    private $creationDate;
 
     function getHash() {
         return $this->hash;
@@ -59,17 +59,17 @@ class Link extends DatabaseEntity {
         }
         return IntegerHash::encode($count);
     }
-    
+
     /**
      * function to insert a new link pair into the database
      * @return \ResponseLinkHash
      */
     function insertLink() {
         $response = new ResponseLinkHash();
-       
+
         $this->setHash($this->calculateNexHash());
         $sql = "INSERT INTO links ( `hash`, `url_orig`, `creation_date`) VALUES (:hash,:url, NOW());";
-        
+
         try {
             $stmt = parent::getConnection()->prepare($sql);
 
@@ -82,6 +82,39 @@ class Link extends DatabaseEntity {
         } catch (Exception $e) {
             $response->setStatus(-1);
             $response->setLink(null);
+            $response->setMessage($e->getMessage());
+        }
+        return $response;
+    }
+
+    /**
+     * function to fetch url_orig from a given hash
+     * @return \ResponseLinkHash
+     */
+    function fetchDestinationURL() {
+        $response = new ResponseLinkHash();
+        $sql = "SELECT url_orig FROM links WHERE hash=:hash";
+        try {
+            $stmt = parent::getConnection()->prepare($sql);
+            $stmt->bindParam(':hash', $this->getHash());
+            if ($stmt->execute()) {
+                $urlDestino = $stmt->fetch()[0];
+                if (isset($urlDestino) && !empty($urlDestino)) {
+                    $this->setUrlOrig($urlDestino);
+                    $response->setStatus(0);
+                    $response->setLink($this);
+                } else {
+                    $response->setStatus(-1);
+                    $response->setLink(null);
+                    $response->setMessage('Hash no encontrado');
+                }
+            } else {
+                $response->setStatus(-1);
+                $response->setLink(null);
+                $response->setMessage('excecute failed');
+            }
+        } catch (Exception $e) {
+            $response->setStatus(-1);
             $response->setMessage($e->getMessage());
         }
         return $response;
