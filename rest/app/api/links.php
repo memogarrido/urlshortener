@@ -38,7 +38,7 @@ $app->get('/{hash}', function ($request, $response) {
 });
 
 
-//Route to insert link on post
+//Route to get list of link pairs
 $app->get('/links/', function ($request, $response) {
     $link = new Link();
     if ($request->getParam('offset') && filter_var($request->getParam('offset'), FILTER_VALIDATE_INT)) {

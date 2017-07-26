@@ -1,26 +1,95 @@
 <!DOCTYPE html>
-<!--
-To change this license header, choose License Headers in Project Properties.
-To change this template file, choose Tools | Templates
-and open the template in the editor.
--->
 <html>
+
     <head>
-        <title>TODO supply a title</title>
+        <title>Wize.xyz</title>
         <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="description" content="Website that consumes urlshortener service ">
+        <meta name="keywords" content="url shortener, tiny url, bitly, goo.gl">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+        <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet">
+        <link href="css/style.css" rel="stylesheet" type="text/css"/>
     </head>
-    <body>
-        <div>TODO write content</div>
+    <body onload="getLatestLinks(0);">
+        <header class="container">
+            <div class="row">
+                <div class="col-lg-12">
+                    <h1> Wize.xyz one more URL Shortener</h1>
+                </div>
+            </div>
+        </header>
+        <main class="container">
+            <section class="row">
+                <section class="col-lg-5">
+                    <input placeholder="Insert long and buring URL" type="text" class="allWithd" id="longURL" onchange="shortenURL()"/>
+                </section>
+                <section class="col-lg-2 center-text">
+                    <img src="img/transfer-icon.png" alt="transfer icon" class="transfer-icon" id="imgAnim"/>
+                </section>
+                <section class="col-lg-5">
+                    <input placeholder="Get short new and exiting URL" type="text" class="allWithd" id="shortURL"/>
+                </section>
+            </section>
+            <section class="row">
+                <section class="col-lg-10 col-lg-offset-1">
+                    <table class="allWithd margen60">
+                        <thead>
+                            <tr>
+                                <th>HASH</th>
+                                <th>Destination URL</th>
+                                <!--<th>Creation Date</th>-->
+                            </tr>
+                        </thead>
+                        <tbody id="tblBodyLinks">
+
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td colspan="2" id="tblLinksFooterTd"></td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </section>
+            </section>
+        </main>
         <script type="text/javascript">
             /*for (var i = 50; i < 100000; i++) {
-                doJSONRequest("http://testmemo" + i + ".com", function (json) {
-                    console.log(json);
+             doJSONRequest("http://testmemo" + i + ".com", function (json) {
+             console.log(json);
+             });
+             }*/
+            function shortenURL() {
+                var imgAnim = document.getElementById('imgAnim');
+                var longURL = document.getElementById('longURL');
+                var shortURL = document.getElementById('shortURL');
+                imgAnim.className += " animado";
+                var data = new FormData();
+                data.append('url', longURL.value);
+                doJSONRequest("http://localhost:3000/links/", data, "POST", function (data) {
+                    if (data.status == 0) {
+                        shortURL.value = "http://localhost:3000/" + data.link.hash;
+                    } else
+                        alert("Ocurrio un error al obtener url " + data.message);
+                    imgAnim.className = "transfer-icon";
                 });
-            }*/
-            function doJSONRequest(url, callback) {
+            }
+            function getLatestLinks(offset) {
+                var data = {
+                    offset: offset + 1
+                };
+                doJSONRequest("http://localhost:3000/links/", data, "GET", function (data) {
+                    var tableDom = document.getElementById('tblBodyLinks');
+                    console.log(data);
+                    data.links.forEach(function (link) {
+                        tableDom.innerHTML = tableDom.innerHTML + "<tr><td>" + link.hash + "</td><td>" + link.urlOrig + "</td></tr>";
+                    });
+                    var tableFooterDom = document.getElementById('tblLinksFooterTd');
+                    tableFooterDom.innerHTML = "<button onclick='getLatestLinks(" + (offset + 100) + ")'>Load more data</button>";
+                });
+            }
+            function doJSONRequest(url, data, method, callback) {
                 var xmlhttp = new XMLHttpRequest();
-
                 xmlhttp.onreadystatechange = function () {
                     if (xmlhttp.readyState == XMLHttpRequest.DONE) {
                         if (xmlhttp.status == 200) {
@@ -32,10 +101,23 @@ and open the template in the editor.
                         }
                     }
                 };
-                var data = new FormData();
-                data.append('url', url);
-                xmlhttp.open("POST", "http://localhost:3000/links/", true);
-                xmlhttp.send(data);
+                if (method === "GET") {
+                    console.log(url + formatParams(data));
+                    xmlhttp.open(method, url + formatParams(data), true);
+                    xmlhttp.send();
+                } else if (method === "POST") {
+                    xmlhttp.open(method, url, true);
+                    xmlhttp.send(data);
+                }
+            }
+
+            function formatParams(params) {
+                return "?" + Object
+                        .keys(params)
+                        .map(function (key) {
+                            return key + "=" + encodeURIComponent(params[key]);
+                        })
+                        .join("&");
             }
         </script>
     </body>
