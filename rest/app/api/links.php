@@ -36,3 +36,21 @@ $app->get('/{hash}', function ($request, $response) {
                         ->write('Page not found ' . $responseStatus->getMessage());
     }
 });
+
+
+//Route to insert link on post
+$app->get('/links/', function ($request, $response) {
+    $link = new Link();
+    if ($request->getParam('offset') && filter_var($request->getParam('offset'), FILTER_VALIDATE_INT)) {
+        return $response->withStatus(200)
+                        ->withHeader('Content-Type', 'application/json')
+                        ->write(json_encode($link->getURLs($request->getParam('offset'))));
+    } else {
+        $responseStatus = new ResponseStatus();
+        $responseStatus->setStatus(-1);
+        $responseStatus->setMessage("No se ha recibido el offset para mostrar resultados");
+        return $response->withStatus(400)
+                        ->withHeader('Content-Type', 'application/json')
+                        ->write(json_encode($responseStatus));
+    }
+});

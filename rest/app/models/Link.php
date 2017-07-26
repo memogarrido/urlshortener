@@ -72,12 +72,15 @@ class Link extends DatabaseEntity {
 
         try {
             $stmt = parent::getConnection()->prepare($sql);
-
             $stmt->bindParam(':hash', $this->getHash());
             $stmt->bindParam(':url', $this->getUrlOrig());
             if ($stmt->execute()) {
                 $response->setStatus(0);
                 $response->setLink($this);
+            } else {
+                $response->setStatus(-1);
+                $response->setLink(null);
+                $response->setMessage('excecute failed' . json_encode($stmt->errorInfo()));
             }
         } catch (Exception $e) {
             $response->setStatus(-1);
@@ -120,6 +123,45 @@ class Link extends DatabaseEntity {
         return $response;
     }
 
+    /**
+     * function to fetch all stored links
+     * @return \ResponseLinkHash
+     */
+    function getURLs($offset) {
+        $response = new ResponseLinks();
+        $sql = "SELECT url_orig, hash, creation_date FROM links order by creation_date desc limit  100 offset :offset";
+        try {
+            $stmt = parent::getConnection()->prepare($sql);
+            $stmt->bindParam(':offset',intval($offset), PDO::PARAM_INT);
+            if ($stmt->execute()) {
+                $lstLinks = [];
+                while ($row = $stmt->fetch()) {
+                    $objLink = new Link();
+                    $objLink->setCreationDate($row["creation_date"]);
+                    $objLink->setHash($row["hash"]);
+                    $objLink->setUrlOrig($row["url_orig"]);
+                    array_push($lstLinks, $objLink);
+                }
+                if (sizeof($lstLinks)>0) {
+                    $response->setStatus(0);
+                    $response->setLinks($lstLinks);
+                } else {
+                    $response->setStatus(-1);
+                    $response->setLinks(null);
+                    $response->setMessage('sin resultados');
+                }
+            } else {
+                $response->setStatus(-1);
+                $response->setLinks(null);
+                $response->setMessage('excecute failed ' . json_encode($stmt->errorInfo()));
+            }
+        } catch (Exception $e) {
+            $response->setStatus(-1);
+            $response->setMessage($e->getMessage());
+        }
+        return $response;
+    }
+
 }
 
 /**
@@ -138,3 +180,21 @@ class ResponseLinkHash extends ResponseStatus {
     }
 
 }
+
+/**
+ * Class to respond properly to the REST service
+ */
+class ResponseLinks extends ResponseStatus {
+
+    public $links;
+
+    function getLinks() {
+        return $this->links;
+    }
+
+    function setLinks($links) {
+        $this->links = $links;
+    }
+
+}
+
